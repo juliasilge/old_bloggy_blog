@@ -1,2 +1,1 @@
-# juliasilge.github.io
-My bloggy blog, based on the So Simple theme :link:
+This blog is built on the [So Simple](https://github.com/mmistakes/so-simple-theme) theme.
