@@ -1,0 +1,121 @@
+---
+layout: post
+title: "Something Strange in the Neighborhood"
+date: 2016-8-5
+output:
+  html_document
+share: true
+categories: blog
+excerpt: "Using Leaflet to Map Ghost Sightings"
+tags: [rstats]
+---
+
+```{r, echo = FALSE, warning = FALSE}
+library(knitr)
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(screenshot.force = FALSE)
+```
+
+Today I was so pleased to see a [new data package hit CRAN](https://cran.r-project.org/web/packages/ghostr/), and how wonderful to see such accomplished women writing R packages.
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">What a great new data package on CRAN! And always great to see more women authors in <a href="https://twitter.com/hashtag/rstats?src=hash">#rstats</a> <a href="https://t.co/nROMibqPxX">https://t.co/nROMibqPxX</a> <a href="https://t.co/UEayWgx9bz">pic.twitter.com/UEayWgx9bz</a></p>&mdash; Julia Silge (@juliasilge) <a href="https://twitter.com/juliasilge/status/761551224646668289">August 5, 2016</a></blockquote>
+<script async src="http://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+The ghostr package includes a dataset of over 800 ghost sightings in Kentucky, with information on city, latitude, and longitude, along with URLs for finding more information about the ghost sightings.
+
+```{r}
+library(ghostr)
+library(acs)
+library(dplyr)
+library(reshape2)
+library(stringr)
+library(readr)
+data(ghost_sightings)
+names(ghost_sightings)
+ghost_sightings %>% summarise(total = sum(sightings))
+```
+
+## Getting Started with Leaflet
+
+I've been wanting to get familiar with [Leaflet](https://rstudio.github.io/leaflet/), the popular library for interactive maps, and this seems like a perfect opportunity.
+
+How are ghost sightings distributed across Kentucky?
+
+```{r}
+library(leaflet)
+m <- leaflet(ghost_sightings, width = "100%") %>%
+        addProviderTiles("CartoDB.Positron") %>%
+        addCircles(lng = ~lon, lat = ~lat, weight = 2.5,
+                   radius = ~sqrt(sightings) * 4e3, popup = ~city,
+                   color = "limegreen")
+m
+```
+
+I've used a nice slimy green color here for the sightings, and the area of each circle is proportional to the number of sightings there.
+
+## Ain't Afraid of No Ghost
+
+That is very nice, but perhaps we would like to compare this to the populations in Kentucky cities and towns. Let's find the population in towns and cities in Kentucky from the U.S. Census, using ACS table B01003. (If you haven't used the acs package before, you will need to get an API key and run `api.key.install()` one time to install your key on your system.) I'll use `msa` in the call to the ACS tables, which gets metropolitan/micropolitan statistical areas; this is about the best match to cities and towns you can get in the Census.
+
+```{r}
+kentucky <- geo.make(state = "KY", msa = "*")
+popfetch <- acs.fetch(geography = kentucky, 
+                      endyear = 2014,
+                      span = 5, 
+                      table.number = "B01003",
+                      col.names = "pretty")
+popDF <- melt(estimate(popfetch)) %>%
+        mutate(city = str_extract(str_sub(as.character(Var1), 1, -11), ".+?(?= \\(part)|.+"),
+               population = value) %>%
+        select(city, population)
+popDF
+```
+
+You can see here that this is fewer cities and towns than we had for the ghost sightings; there are ghost sightings records in some very small towns. Also, the acs package is great but working with it always involves a) lots of regex and b) lots of tidying. Anyway, now we need the latitude and longitude for these metropolitan and micropolitan areas; these are [available from the Census](https://www.census.gov/geo/maps-data/data/gazetteer2015.html). 
+
+```{r}
+gazetteer <- read_tsv("./2015_Gaz_cbsa_national.txt")
+popDF <- left_join(popDF, gazetteer, by = c("city" = "NAME"))
+```
+
+Now let's make a Leaflet map for the population of these areas in Kentucky.
+
+```{r}
+m <- leaflet(popDF, width = "100%") %>%
+        addProviderTiles("CartoDB.Positron") %>%
+        addCircles(lng = ~INTPTLONG, lat = ~INTPTLAT, weight = 1,
+                   radius = ~sqrt(population) * 50, popup = ~city)
+m
+```
+
+Actually, let's bind these data frames together and map them at the same time to compare.
+
+```{r}
+mapDF <- bind_rows(popDF %>%
+                           mutate(lat = INTPTLAT, long = INTPTLONG, 
+                                  weight = 1, radius = sqrt(population) * 50, 
+                                  type = "Population") %>%
+                           select(lat, long, city, weight, radius, type),
+                   ghost_sightings %>% 
+                           mutate(lat = lat, long = lon, city = city, 
+                                  weight = 2.5, radius = sqrt(sightings) * 4e3, 
+                                  type = "Ghost Sighting") %>%
+                           select(lat, long, city, weight, radius, type))
+typepal <- colorFactor(c("limegreen", "blue"), mapDF$type)
+m <- leaflet(mapDF, width = "100%") %>%
+        addProviderTiles("CartoDB.Positron") %>%
+        addCircles(lng = ~long, lat = ~lat, weight = ~weight,
+                   radius = ~radius, popup = ~city, color = ~typepal(type)) %>%
+        addLegend(pal = typepal, values = ~type, title = NULL)
+m
+```
+
+Pretty nice! It looks to me like there are more ghost sightings in areas of higher population, but basically there are ghosts everywhere in Kentucky. The eastern part of Kentucky seems particularly full of ghosts relative to people.
+
+## The End
+
+<iframe src="http://giphy.com/embed/3o7qE5BD09LwNj4qSk" width="480" height="270" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="http://giphy.com/gifs/kristen-wiig-melissa-mccarthy-we-dont-want-mass-hysteria-3o7qE5BD09LwNj4qSk">via GIPHY</a></p>
+
+I am glad to have figured out a few things about Leaflet; it is very nice to use. Thanks to [Kyle Walker](http://personal.tcu.edu/kylewalker/) and [Kent Russell](https://twitter.com/timelyportfolio) who helped me figure out how to get the maps to display at the right width both on desktop and mobile! The R Markdown file used to make this blog post is available [here](https://github.com/juliasilge/juliasilge.github.io/blob/master/_R/2016-08-05-Something-Strange.Rmd). I am very happy to hear feedback or questions!
+
+

@@ -1,0 +1,25 @@
+# Site navigation links
+
+- title: Blog
+  url: /blog/
+
+- title: About
+  url: /about/
+
+- title: Resume
+  url: /resume/
+
+- title: Github
+  url: http://github.com/juliasilge
+
+- title: LinkedIn
+  url: http://www.linkedin.com/in/juliasilge
+  
+- title: ORCID
+  url: http://orcid.org/0000-0002-3671-836X
+
+- title: Resources
+  url: /blogroll/
+
+- title: Search
+  url: /search/
