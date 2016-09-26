@@ -365,7 +365,7 @@ map2 <- image_read("../figs/2016-09-26-Song-Lyrics-Across/minimap-2.png")
 image_write(animate_map, "../figs/2016-09-26-Song-Lyrics-Across/animate_map.gif")
 {% endhighlight %}
 
-![States and Song Lyrics](figs/2016-09-26-Song-Lyrics-Across/animate_map.gif)
+![States and Song Lyrics](/figs/2016-09-26-Song-Lyrics-Across/animate_map.gif)
 
 ## Cartogram Map
 
