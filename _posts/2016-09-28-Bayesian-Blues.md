@@ -137,9 +137,12 @@ ggplot(state_counts, aes(rate, rate_estimate, color = n)) +
     geom_point(size = 4) +
     scale_color_gradient(low = "midnightblue", high = "pink",
                          name="Number\nof songs") +
-    labs(x = "Measured rate of mentions per million population",
+    labs(title = "States in Song Lyrics with Empirical Bayes",
+         subtitle = "States like Montana and Hawaii (high rates, few mentions) are shifted the most",
+         x = "Measured rate of mentions per million population",
          y = "Empirical Bayes estimate of rate per million population") +
-    theme_minimal(base_family = "RobotoCondensed-Regular")
+    theme_minimal(base_family = "RobotoCondensed-Regular") +
+    theme(plot.title=element_text(family="Roboto-Bold"))
 {% endhighlight %}
 
 ![center](/figs/2016-09-28-Bayesian-Blues/unnamed-chunk-7-1.png)

@@ -146,9 +146,12 @@ ggplot(state_counts, aes(rate, rate_estimate, color = n)) +
     geom_point(size = 4) +
     scale_color_gradient(low = "midnightblue", high = "pink",
                          name="Number\nof songs") +
-    labs(x = "Measured rate of mentions per million population",
+    labs(title = "States in Song Lyrics with Empirical Bayes",
+         subtitle = "States like Montana and Hawaii (high rates, few mentions) are shifted the most",
+         x = "Measured rate of mentions per million population",
          y = "Empirical Bayes estimate of rate per million population") +
-    theme_minimal(base_family = "RobotoCondensed-Regular")
+    theme_minimal(base_family = "RobotoCondensed-Regular") +
+    theme(plot.title=element_text(family="Roboto-Bold"))
 ```
 
 Notice that the states that were mentioned the highest number of times are closest to the line, i.e., the empirical Bayes method here did not change the value that much. It is only for states that were mentioned in a few songs that the two values are quite different. Notice that the high rates were shifted to lower values and the low rates were shifted to (slightly) higher values.
