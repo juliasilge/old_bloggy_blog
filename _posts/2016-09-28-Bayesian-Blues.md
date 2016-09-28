@@ -1,0 +1,245 @@
+---
+layout: post
+title: "Singing the Bayesian Beginner Blues"
+date: 2016-09-28
+output:
+  html_document
+share: true
+categories: blog
+excerpt: "Song Lyrics Frequency and Empirical Bayes Estimation"
+tags: [rstats]
+---
+
+
+
+Earlier this week, I published a post about [song lyrics and how different U.S. states are mentioned at different rates, and at different rates relative to their populations](http://juliasilge.com/blog/Song-Lyrics-Across/). That was a very fun post to work on, but you can tell from that paragraph near the end that I am a little bothered by the uncertainty involved in calculating the rates by just dividing two numbers. [David Robinson suggested on Twitter](https://twitter.com/drob/status/780400407239680000) that I might try using empirical Bayes methods to estimate the rates. I am a newcomer to Bayesian methods but this idea makes a lot of sense in this context, so let's see what we can do!
+
+## Getting Started
+
+The analysis here borrows very heavily from [two](http://varianceexplained.org/r/credible_intervals_baseball/) of Dave's [posts](http://varianceexplained.org/r/empirical_bayes_baseball/) from last year. To start out, what are the values that we are dealing with? (I have hidden the code that downloads/calculates these values, but you can see the entire R Markdown file [here](https://github.com/juliasilge/juliasilge.github.io/blob/master/_R/2016-09-28-Bayesian-Blues.Rmd).)
+
+
+
+
+
+{% highlight r %}
+state_counts %>%
+    arrange(desc(rate)) %>%
+    top_n(10)
+{% endhighlight %}
+
+
+
+{% highlight text %}
+## # A tibble: 10 × 4
+##     state_name  pop2014     n         rate
+##         <fctr>    <dbl> <dbl>        <dbl>
+## 1       Hawaii  1392704     6 4.308166e-06
+## 2  Mississippi  2984345     8 2.680655e-06
+## 3     New York 19594330    51 2.602794e-06
+## 4      Georgia  9907756    21 2.119552e-06
+## 5      Montana  1006370     2 1.987341e-06
+## 6      Alabama  4817678     9 1.868120e-06
+## 7    Tennessee  6451365    11 1.705066e-06
+## 8     Nebraska  1855617     3 1.616713e-06
+## 9     Kentucky  4383272     7 1.596981e-06
+## 10      Nevada  2761584     3 1.086333e-06
+{% endhighlight %}
+
+We have, for each state here, the population in the state, the number of times it was mentioned in a song, and the rate of mentions per population (just the previous two numbers divided by each other). The reason I was uncomfortable here is that some states were mentioned so few times (like Hawaii and Montana!) and it is surely true that the rates calculated here have very different uncertainty intervals from state to state.
+
+## Bayesian Who?!
+
+This is where Bayesian methods come in. We can use Bayesian methods to a) estimate the rate itself and b) estimate credible intervals. For a really wonderful explanation of how Bayesian models work, I will point you to [Rasmus Bååth's post](http://www.sumsar.net/blog/2015/11/a-bayesian-model-to-calculate-whether-my-wife-is-pregnant/) about whether his wife is pregnant or not. He posted that last year not too long after Dave posted some of his baseball/Bayes posts, at which time I started to think, "Maybe this Bayes stuff does actually make sense." To use a Bayesian method, we need to choose a prior probability distribution for what we want to estimate; this is what we believe about the quantity before evidence is taken into account. What makes empirical Bayes "empirical" is that the prior probability distribution is taken from the data itself; we will plot the actual distribution of rates (mentions per population) and use that distribution as our prior.
+
+
+{% highlight r %}
+ggplot(state_counts, aes(rate)) +
+    geom_histogram(binwidth = 2e-7, alpha = 0.8, fill = "midnightblue") +
+    labs(x = "rate of mentions per population") +
+    theme_minimal(base_family = "RobotoCondensed-Regular")
+{% endhighlight %}
+
+![center](/figs/2016-09-28-Bayesian-Blues/unnamed-chunk-3-1.png)
+
+Hmmmmm, that's not so great, is it? There are only 50 states and not all of them were mentioned in this lyrics data set at all. But we will merrily push forward and calculate a prior probability distribution from this. Let's fit a beta distribution to this to use as our prior. I'm going to use the [method of moments](http://stats.stackexchange.com/questions/12232/calculating-the-parameters-of-a-beta-distribution-using-the-mean-and-variance) to fit a beta distribution.
+
+
+
+{% highlight r %}
+x <- state_counts$n / state_counts$pop2014
+mu <- mean(x)
+sigma2 <- var(x)
+alpha0 <- ((1 - mu) / sigma2 - 1 / mu) * mu^2
+beta0 <- alpha0 * (1 / mu - 1)
+{% endhighlight %}
+
+Now let's plot this.
+
+
+{% highlight r %}
+ggplot(state_counts) +
+    geom_histogram(aes(rate, y = ..density..), binwidth = 2e-7, alpha = 0.8, fill = "midnightblue") +
+    stat_function(fun = function(x) dbeta(x, alpha0, beta0), 
+                  color = "red", size = 1) +
+    labs(x = "rate of mentions per population") +
+    theme_minimal(base_family = "RobotoCondensed-Regular")
+{% endhighlight %}
+
+![center](/figs/2016-09-28-Bayesian-Blues/unnamed-chunk-5-1.png)
+
+That's not... too awful, I hope. Remember, what this is supposed to be is our belief about the distribution of rates before evidence from individual states is taken into account. I would buy this in a general sense; there a few states that are mentioned many times and many states that are mentioned a few times.
+
+And that's it! We have a prior.
+
+## Calculating the Empirical Bayes Estimate
+
+Now that we have a prior probability distribution, we use Bayes' theorem to calculate a posterior estimate for each state's rate. It's not very difficult math.
+
+
+{% highlight r %}
+state_counts <- state_counts %>%
+    mutate(rate_estimate = 1e6*(n + alpha0) / (pop2014 + alpha0 + beta0),
+           rate = 1e6*rate)
+
+state_counts
+{% endhighlight %}
+
+
+
+{% highlight text %}
+## # A tibble: 30 × 5
+##    state_name  pop2014     n      rate rate_estimate
+##        <fctr>    <dbl> <dbl>     <dbl>         <dbl>
+## 1     Alabama  4817678     9 1.8681199     1.7148065
+## 2     Arizona  6561516     2 0.3048076     0.4037066
+## 3    Arkansas  2947036     1 0.3393240     0.5183509
+## 4  California 38066920    26 0.6830077     0.6920388
+## 5    Colorado  5197580     3 0.5771917     0.6515740
+## 6     Florida 19361792     4 0.2065924     0.2485870
+## 7     Georgia  9907756    21 2.1195516     2.0131362
+## 8      Hawaii  1392704     6 4.3081660     2.8870458
+## 9       Idaho  1599464     1 0.6252094     0.7811711
+## 10   Illinois 12868747     5 0.3885382     0.4362856
+## # ... with 20 more rows
+{% endhighlight %}
+
+How do the two values compare?
+
+
+{% highlight r %}
+library(ggrepel)
+ggplot(state_counts, aes(rate, rate_estimate, color = n)) +
+    geom_abline(intercept = 0, slope = 1, color = "gray70", linetype = 2) +
+    geom_text_repel(aes(label = state_name), color = "black",
+                    box.padding = unit(0.5, 'lines'),
+                    family = "RobotoCondensed-Regular") +
+    geom_point(size = 4) +
+    scale_color_gradient(low = "midnightblue", high = "pink",
+                         name="Number\nof songs") +
+    labs(x = "Measured rate of mentions per million population",
+         y = "Empirical Bayes estimate of rate per million population") +
+    theme_minimal(base_family = "RobotoCondensed-Regular")
+{% endhighlight %}
+
+![center](/figs/2016-09-28-Bayesian-Blues/unnamed-chunk-7-1.png)
+
+Notice that the states that were mentioned the highest number of times are closest to the line, i.e., the empirical Bayes method here did not change the value that much. It is only for states that were mentioned in a few songs that the two values are quite different. Notice that the high rates were shifted to lower values and the low rates were shifted to (slightly) higher values.
+
+## What Is the Posterior Distribution for Each State?
+
+We calculated an empirical Bayes estimate for each rate above, but we can actually calculate the full posterior probability distribution for each state. What are $$\alpha$$ and $$\beta$$ for each state?
+
+
+{% highlight r %}
+state_counts <- state_counts %>%
+    mutate(alpha1 = n + alpha0,
+           beta1 = pop2014 - n + beta0)
+
+state_counts
+{% endhighlight %}
+
+
+
+{% highlight text %}
+## # A tibble: 30 × 7
+##    state_name  pop2014     n      rate rate_estimate    alpha1    beta1
+##        <fctr>    <dbl> <dbl>     <dbl>         <dbl>     <dbl>    <dbl>
+## 1     Alabama  4817678     9 1.8681199     1.7148065 10.076171  5875972
+## 2     Arizona  6561516     2 0.3048076     0.4037066  3.076171  7619817
+## 3    Arkansas  2947036     1 0.3393240     0.5183509  2.076171  4005338
+## 4  California 38066920    26 0.6830077     0.6920388 27.076171 39125197
+## 5    Colorado  5197580     3 0.5771917     0.6515740  4.076171  6255880
+## 6     Florida 19361792     4 0.2065924     0.2485870  5.076171 20420091
+## 7     Georgia  9907756    21 2.1195516     2.0131362 22.076171 10966038
+## 8      Hawaii  1392704     6 4.3081660     2.8870458  7.076171  2451001
+## 9       Idaho  1599464     1 0.6252094     0.7811711  2.076171  2657766
+## 10   Illinois 12868747     5 0.3885382     0.4362856  6.076171 13927045
+## # ... with 20 more rows
+{% endhighlight %}
+
+Let's plot a few of these to see what they look like.
+
+
+{% highlight r %}
+library(broom)
+counts_beta <- state_counts %>% 
+    arrange(desc(rate_estimate)) %>% 
+    top_n(5, rate_estimate) %>%
+    inflate(x = seq(1e-7, 5e-6, 2e-8)) %>%
+    ungroup() %>%
+    mutate(density = dbeta(x, alpha1, beta1))
+
+ggplot(counts_beta, aes(x, density, color = state_name)) +
+    geom_line(size = 1.2, alpha = 0.8) +
+    stat_function(fun = function(x) dbeta(x, alpha0, beta0),
+                  lty = 2, color = "black") +
+    labs(x = "Rate of mentions per population",
+         y = "Density",
+         title = "Prior and Posterior Distributions",
+         subtitle = "The posterior distribution for a few example states are shown\nThe prior distribution is shown as a dashed line") +
+    theme_minimal(base_family = "RobotoCondensed-Regular") +
+    theme(plot.title=element_text(family="Roboto-Bold")) +
+    theme(legend.title=element_blank())
+{% endhighlight %}
+
+![center](/figs/2016-09-28-Bayesian-Blues/unnamed-chunk-9-1.png)
+
+Notice that New York, which was mentioned in many songs, has a narrow posterior probability distribution; we have more precise knowledge about the rate for New York. Hawaii's posterior probability distribution is centered at about the same spot but it is a broad probability distribution; we have less precise knowledge about the rate for Hawaii, because Hawaii was only mentioned in a few songs!
+
+We can use these posterior probability distributions to calculate credible intervals, an estimate of how uncertain each of these measurements is, analogous to a confidence interval. (BUT SO DIFFERENT, everyone tells me. ON A PHILOSOPHICAL LEVEL.)
+
+
+{% highlight r %}
+state_counts <- state_counts %>%
+    mutate(low  = 1e6*qbeta(.025, alpha1, beta1),
+           high = 1e6*qbeta(.975, alpha1, beta1))
+{% endhighlight %}
+
+These are 95% credible intervals. Let's check them out!
+
+
+{% highlight r %}
+library(tidyr)
+state_counts %>% 
+    arrange(desc(rate_estimate)) %>% 
+    mutate(state_name = factor(state_name, levels = rev(unique(state_name)))) %>%
+    select(state_name, 'Measured rate' = rate, 'Empirical Bayes estimate' = rate_estimate, low, high) %>% 
+    gather(type, rate, `Measured rate`, `Empirical Bayes estimate`) %>%
+    ggplot(aes(rate, state_name, color = type)) +
+    geom_errorbarh(aes(xmin = low, xmax = high), color = "gray50") +
+    geom_point(size = 3) +
+    xlim(0, NA) +
+    labs(x = "Rate of mentions per million population",
+         y = NULL, title = "Measured Rates, Empirical Bayesian Estimates, and Credible Intervals",
+         subtitle = "The 95% credible intervals are shown for these states") +
+    theme_minimal(base_family = "RobotoCondensed-Regular") +
+    theme(plot.title=element_text(family="Roboto-Bold")) +
+    theme(legend.title=element_blank())
+{% endhighlight %}
+
+![center](/figs/2016-09-28-Bayesian-Blues/unnamed-chunk-11-1.png)
+
+## The End
+
+The part of this that was the most satisfying was the credible intervals, how big/small they are, and how the plain vanilla rates and empirical Bayes rate estimates are distributed in the credible intervals. It definitely gave me the data intuition warm fuzzies and made a lot of sense. This method is not that hard to implement or understand and was a gratifyingly productive first foray into Bayesian methods. The R Markdown file used to make this blog post is available [here](https://github.com/juliasilge/juliasilge.github.io/blob/master/_R/2016-09-28-Bayesian-Blues.Rmd). I am very happy to hear feedback or questions!
