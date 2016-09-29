@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Non-Academic Careers for Astronomers and Physicists"
-date: 2016-09-28
+date: 2016-09-30
 output:
   html_document
 share: true
