@@ -22,7 +22,7 @@ Today I'm giving a talk for the [Department of Physics and Astronomy](https://ww
 - [Declining proposal success rates in astronomy (from the National Science Foundation)](http://arxiv.org/abs/1510.01647)
 - [Pamela Gay on soft money positions](http://www.starstryder.com/2015/11/12/dreaming-of-success-in-an-age-of-diminished-possibility/)
 - [Katie Mack's Twitter](https://twitter.com/AstroKatie) 
-- [Josh Wills' Twiter](https://twitter.com/josh_wills) 
+- [Josh Wills' Twitter](https://twitter.com/josh_wills) 
 - [Drew Conway](http://drewconway.com/zia/2013/3/26/the-data-science-venn-diagram) 
 - [Oliver Keyes on data science](https://ironholds.org/blog/data-science-is-not-magical-unicorn-foo/)
 - [David Robinson on building public artifacts](http://varianceexplained.org/r/year_data_scientist/)
