@@ -5,6 +5,8 @@ title: Helpful Data Science Resources Elsewhere
 
 [R Bloggers](http://www.r-bloggers.com)
 
+[Jobs for R Users](http://www.r-users.com)
+
 [No Free Hunch @ Kaggle](http://blog.kaggle.com)
 
 [MultiThreaded @ Stitch Fix](http://multithreaded.stitchfix.com/blog/)
