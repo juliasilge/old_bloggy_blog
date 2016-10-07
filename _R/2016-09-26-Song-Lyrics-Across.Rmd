@@ -90,7 +90,7 @@ Let's only count each state once per song that it is mentioned in.
 
 ```{r}
 tidy_lyrics <- inner_join(tidy_lyrics, pop_df) %>%
-    distinct(Rank, Song, Artist, Year, .keep_all = TRUE)
+    distinct(Rank, Song, Artist, Year, state_name, .keep_all = TRUE)
 
 tidy_lyrics
 ```
@@ -211,13 +211,15 @@ library(maptools)
 library(albersusa)
 library(cartogram)
 
-pop_df[is.na(pop_df)] <- 0.05
+pop_df <- pop_df %>%
+    mutate(rate_all = rate)
+pop_df$rate_all[is.na(pop_df$rate_all)] <- 0.05
 usa <- usa_composite()
 usa <- spTransform(usa, CRS("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs"))
 usa@data <- usa@data %>%
     mutate(name2 = tolower(name)) %>%
     left_join(pop_df, by = c("name2" = "state_name"))
-distorted <- cartogram(usa, "rate", 5)
+distorted <- cartogram(usa, "rate_all", 5)
 ```
 
 The `cartogram` function could not accept some of the states having `NA` or zero for their rate value, which makes sense. When I tried using a very small number for the states which have zero mentions in this data set, the algorithm could not converge in a reasonable amount of time. I ended up using a small-ish but not-too-close to zero number for those states in order to have the distorting algorithm converge. Anyway, that code above has done the distorting; now let's map this.
@@ -232,7 +234,7 @@ ggplot() +
     geom_map(data = usa@data, map = us_map,
              aes(fill = rate, map_id = name),
              color = NA) +
-    scale_fill_distiller(palette = "BuPu", direction = 1, guide=FALSE) +
+    scale_fill_distiller(palette = "BuPu", direction = 1, guide=FALSE, na.value = "grey95") +
     theme_map(base_family = "RobotoCondensed-Regular") +
     theme(plot.title=element_text(family="Roboto-Bold")) +
     labs(title="What States Are Mentioned Most in Song Lyrics?",

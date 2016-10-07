@@ -106,18 +106,30 @@ tidy_lyrics
 
 {% highlight text %}
 ## # A tibble: 3,201,196 × 6
-##     Rank        Song                        Artist  Year Source    state_name
-##    <int>       <chr>                         <chr> <int>  <int>         <chr>
-## 1      1 wooly bully sam the sham and the pharaohs  1965      3           sam
-## 2      1 wooly bully sam the sham and the pharaohs  1965      3           the
-## 3      1 wooly bully sam the sham and the pharaohs  1965      3          sham
-## 4      1 wooly bully sam the sham and the pharaohs  1965      3 miscellaneous
-## 5      1 wooly bully sam the sham and the pharaohs  1965      3         wooly
-## 6      1 wooly bully sam the sham and the pharaohs  1965      3         bully
-## 7      1 wooly bully sam the sham and the pharaohs  1965      3         wooly
-## 8      1 wooly bully sam the sham and the pharaohs  1965      3         bully
-## 9      1 wooly bully sam the sham and the pharaohs  1965      3           sam
-## 10     1 wooly bully sam the sham and the pharaohs  1965      3           the
+##     Rank        Song                        Artist  Year Source
+##    <int>       <chr>                         <chr> <int>  <int>
+## 1      1 wooly bully sam the sham and the pharaohs  1965      3
+## 2      1 wooly bully sam the sham and the pharaohs  1965      3
+## 3      1 wooly bully sam the sham and the pharaohs  1965      3
+## 4      1 wooly bully sam the sham and the pharaohs  1965      3
+## 5      1 wooly bully sam the sham and the pharaohs  1965      3
+## 6      1 wooly bully sam the sham and the pharaohs  1965      3
+## 7      1 wooly bully sam the sham and the pharaohs  1965      3
+## 8      1 wooly bully sam the sham and the pharaohs  1965      3
+## 9      1 wooly bully sam the sham and the pharaohs  1965      3
+## 10     1 wooly bully sam the sham and the pharaohs  1965      3
+##       state_name
+##            <chr>
+## 1            sam
+## 2            the
+## 3           sham
+## 4  miscellaneous
+## 5          wooly
+## 6          bully
+## 7          wooly
+## 8          bully
+## 9            sam
+## 10           the
 ## # ... with 3,201,186 more rows
 {% endhighlight %}
 
@@ -134,18 +146,30 @@ inner_join(tidy_lyrics, pop_df)
 
 {% highlight text %}
 ## # A tibble: 526 × 7
-##     Rank               Song         Artist  Year Source state_name  pop2014
-##    <int>              <chr>          <chr> <int>  <int>      <chr>    <dbl>
-## 1     12   king of the road   roger miller  1965      1      maine  1328535
-## 2     29 eve of destruction  barry mcguire  1965      1    alabama  4817678
-## 3     49   california girls the beach boys  1965      3 california 38066920
-## 4     49   california girls the beach boys  1965      3 california 38066920
-## 5     49   california girls the beach boys  1965      3 california 38066920
-## 6     49   california girls the beach boys  1965      3 california 38066920
-## 7     49   california girls the beach boys  1965      3 california 38066920
-## 8     49   california girls the beach boys  1965      3 california 38066920
-## 9     49   california girls the beach boys  1965      3 california 38066920
-## 10    49   california girls the beach boys  1965      3 california 38066920
+##     Rank               Song         Artist  Year Source state_name
+##    <int>              <chr>          <chr> <int>  <int>      <chr>
+## 1     12   king of the road   roger miller  1965      1      maine
+## 2     29 eve of destruction  barry mcguire  1965      1    alabama
+## 3     49   california girls the beach boys  1965      3 california
+## 4     49   california girls the beach boys  1965      3 california
+## 5     49   california girls the beach boys  1965      3 california
+## 6     49   california girls the beach boys  1965      3 california
+## 7     49   california girls the beach boys  1965      3 california
+## 8     49   california girls the beach boys  1965      3 california
+## 9     49   california girls the beach boys  1965      3 california
+## 10    49   california girls the beach boys  1965      3 california
+##     pop2014
+##       <dbl>
+## 1   1328535
+## 2   4817678
+## 3  38066920
+## 4  38066920
+## 5  38066920
+## 6  38066920
+## 7  38066920
+## 8  38066920
+## 9  38066920
+## 10 38066920
 ## # ... with 516 more rows
 {% endhighlight %}
 
@@ -154,7 +178,7 @@ Let's only count each state once per song that it is mentioned in.
 
 {% highlight r %}
 tidy_lyrics <- inner_join(tidy_lyrics, pop_df) %>%
-    distinct(Rank, Song, Artist, Year, .keep_all = TRUE)
+    distinct(Rank, Song, Artist, Year, state_name, .keep_all = TRUE)
 
 tidy_lyrics
 {% endhighlight %}
@@ -162,32 +186,32 @@ tidy_lyrics
 
 
 {% highlight text %}
-## # A tibble: 208 × 7
-##     Rank                          Song                         Artist  Year
-##    <int>                         <chr>                          <chr> <int>
-## 1     12              king of the road                   roger miller  1965
-## 2     29            eve of destruction                  barry mcguire  1965
-## 3     49              california girls                 the beach boys  1965
-## 4     10            california dreamin           the mamas  the papas  1966
-## 5     77            message to michael                 dionne warwick  1966
-## 6     61             california nights                    lesley gore  1967
-## 7      4 sittin on the dock of the bay                   otis redding  1968
-## 8     10                    tighten up        archie bell  the drells  1968
-## 9     25                      get back the beatles with billy preston  1969
-## 10    58                  hawaii fiveo                   the ventures  1969
-##    Source state_name  pop2014
-##     <int>      <chr>    <dbl>
-## 1       1      maine  1328535
-## 2       1    alabama  4817678
-## 3       3 california 38066920
-## 4       3 california 38066920
-## 5       1   kentucky  4383272
-## 6       1 california 38066920
-## 7       1    georgia  9907756
-## 8       3      texas 26092033
-## 9       3    arizona  6561516
-## 10      1     hawaii  1392704
-## # ... with 198 more rows
+## # A tibble: 253 × 7
+##     Rank                          Song                         Artist
+##    <int>                         <chr>                          <chr>
+## 1     12              king of the road                   roger miller
+## 2     29            eve of destruction                  barry mcguire
+## 3     49              california girls                 the beach boys
+## 4     10            california dreamin           the mamas  the papas
+## 5     77            message to michael                 dionne warwick
+## 6     61             california nights                    lesley gore
+## 7      4 sittin on the dock of the bay                   otis redding
+## 8     10                    tighten up        archie bell  the drells
+## 9     25                      get back the beatles with billy preston
+## 10    25                      get back the beatles with billy preston
+##     Year Source state_name  pop2014
+##    <int>  <int>      <chr>    <dbl>
+## 1   1965      1      maine  1328535
+## 2   1965      1    alabama  4817678
+## 3   1965      3 california 38066920
+## 4   1966      3 california 38066920
+## 5   1966      1   kentucky  4383272
+## 6   1967      1 california 38066920
+## 7   1968      1    georgia  9907756
+## 8   1968      3      texas 26092033
+## 9   1969      3    arizona  6561516
+## 10  1969      3 california 38066920
+## # ... with 243 more rows
 {% endhighlight %}
 
 ## Calculating Counts 
@@ -207,20 +231,20 @@ state_counts
 
 
 {% highlight text %}
-## # A tibble: 30 × 2
+## # A tibble: 33 × 2
 ##     state_name     n
 ##          <chr> <int>
-## 1     new york    51
-## 2   california    26
-## 3      georgia    21
-## 4        texas    13
-## 5    tennessee    11
-## 6      alabama     9
-## 7  mississippi     8
+## 1     new york    64
+## 2   california    34
+## 3      georgia    22
+## 4    tennessee    14
+## 5        texas    14
+## 6      alabama    12
+## 7  mississippi    10
 ## 8     kentucky     7
 ## 9       hawaii     6
-## 10    virginia     6
-## # ... with 20 more rows
+## 10    illinois     6
+## # ... with 23 more rows
 {% endhighlight %}
 
 Now, I am going to use my vast knowledge of pop culture here and suggest that these mentions of New York are referencing New York City, not the state of New York, as lovely as it may be. I'll keep them in for now but we should be aware of that. Also, I am a bit surprised the numbers are this low overall; this makes me long for BIGGER DATA.
@@ -245,13 +269,13 @@ pop_df %>%
 ##     state_name  pop2014     n     rate
 ##          <chr>    <dbl> <int>    <dbl>
 ## 1       hawaii  1392704     6 4.308166
-## 2  mississippi  2984345     8 2.680655
-## 3     new york 19594330    51 2.602794
-## 4        maine  1328535     3 2.258126
-## 5      georgia  9907756    21 2.119552
-## 6      montana  1006370     2 1.987341
-## 7      alabama  4817678     9 1.868120
-## 8    tennessee  6451365    11 1.705066
+## 2  mississippi  2984345    10 3.350819
+## 3     new york 19594330    64 3.266251
+## 4      alabama  4817678    12 2.490826
+## 5        maine  1328535     3 2.258126
+## 6      georgia  9907756    22 2.220483
+## 7    tennessee  6451365    14 2.170083
+## 8      montana  1006370     2 1.987341
 ## 9     nebraska  1855617     3 1.616713
 ## 10    kentucky  4383272     7 1.596981
 {% endhighlight %}
@@ -382,13 +406,15 @@ library(maptools)
 library(albersusa)
 library(cartogram)
 
-pop_df[is.na(pop_df)] <- 0.05
+pop_df <- pop_df %>%
+    mutate(rate_all = rate)
+pop_df$rate_all[is.na(pop_df$rate_all)] <- 0.05
 usa <- usa_composite()
 usa <- spTransform(usa, CRS("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs"))
 usa@data <- usa@data %>%
     mutate(name2 = tolower(name)) %>%
     left_join(pop_df, by = c("name2" = "state_name"))
-distorted <- cartogram(usa, "rate", 5)
+distorted <- cartogram(usa, "rate_all", 5)
 {% endhighlight %}
 
 The `cartogram` function could not accept some of the states having `NA` or zero for their rate value, which makes sense. When I tried using a very small number for the states which have zero mentions in this data set, the algorithm could not converge in a reasonable amount of time. I ended up using a small-ish but not-too-close to zero number for those states in order to have the distorting algorithm converge. Anyway, that code above has done the distorting; now let's map this.
@@ -404,7 +430,7 @@ ggplot() +
     geom_map(data = usa@data, map = us_map,
              aes(fill = rate, map_id = name),
              color = NA) +
-    scale_fill_distiller(palette = "BuPu", direction = 1, guide=FALSE) +
+    scale_fill_distiller(palette = "BuPu", direction = 1, guide=FALSE, na.value = "grey95") +
     theme_map(base_family = "RobotoCondensed-Regular") +
     theme(plot.title=element_text(family="Roboto-Bold")) +
     labs(title="What States Are Mentioned Most in Song Lyrics?",
