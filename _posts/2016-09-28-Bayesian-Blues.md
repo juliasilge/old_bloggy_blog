@@ -32,18 +32,18 @@ state_counts %>%
 
 {% highlight text %}
 ## # A tibble: 10 × 4
-##     state_name  pop2014     n         rate
-##         <fctr>    <dbl> <dbl>        <dbl>
-## 1       Hawaii  1392704     6 4.308166e-06
-## 2  Mississippi  2984345     8 2.680655e-06
-## 3     New York 19594330    51 2.602794e-06
-## 4      Georgia  9907756    21 2.119552e-06
-## 5      Montana  1006370     2 1.987341e-06
-## 6      Alabama  4817678     9 1.868120e-06
-## 7    Tennessee  6451365    11 1.705066e-06
-## 8     Nebraska  1855617     3 1.616713e-06
-## 9     Kentucky  4383272     7 1.596981e-06
-## 10      Nevada  2761584     3 1.086333e-06
+##      state_name  pop2014     n         rate
+##          <fctr>    <dbl> <dbl>        <dbl>
+## 1        Hawaii  1392704     6 4.308166e-06
+## 2   Mississippi  2984345    10 3.350819e-06
+## 3      New York 19594330    64 3.266251e-06
+## 4       Alabama  4817678    12 2.490826e-06
+## 5       Georgia  9907756    22 2.220483e-06
+## 6     Tennessee  6451365    14 2.170083e-06
+## 7       Montana  1006370     2 1.987341e-06
+## 8      Nebraska  1855617     3 1.616713e-06
+## 9      Kentucky  4383272     7 1.596981e-06
+## 10 North Dakota   704925     1 1.418591e-06
 {% endhighlight %}
 
 We have, for each state here, the population in the state, the number of times it was mentioned in a song, and the rate of mentions per population (just the previous two numbers divided by each other). The reason I was uncomfortable here is that some states were mentioned so few times (like Hawaii and Montana!) and it is surely true that the rates calculated here have very different uncertainty intervals from state to state.
@@ -108,20 +108,20 @@ state_counts
 
 
 {% highlight text %}
-## # A tibble: 30 × 5
+## # A tibble: 33 × 5
 ##    state_name  pop2014     n      rate rate_estimate
 ##        <fctr>    <dbl> <dbl>     <dbl>         <dbl>
-## 1     Alabama  4817678     9 1.8681199     1.7148065
-## 2     Arizona  6561516     2 0.3048076     0.4037066
-## 3    Arkansas  2947036     1 0.3393240     0.5183509
-## 4  California 38066920    26 0.6830077     0.6920388
-## 5    Colorado  5197580     3 0.5771917     0.6515740
-## 6     Florida 19361792     4 0.2065924     0.2485870
-## 7     Georgia  9907756    21 2.1195516     2.0131362
-## 8      Hawaii  1392704     6 4.3081660     2.8870458
-## 9       Idaho  1599464     1 0.6252094     0.7811711
-## 10   Illinois 12868747     5 0.3885382     0.4362856
-## # ... with 20 more rows
+## 1     Alabama  4817678    12 2.4908265     2.2473115
+## 2     Arizona  6561516     4 0.6096152     0.6838013
+## 3    Arkansas  2947036     1 0.3393240     0.5519852
+## 4  California 38066920    34 0.8931639     0.8999236
+## 5    Colorado  5197580     3 0.5771917     0.6730431
+## 6     Florida 19361792     4 0.2065924     0.2552334
+## 7     Georgia  9907756    22 2.2204826     2.1161297
+## 8      Hawaii  1392704     6 4.3081660     2.9387203
+## 9       Idaho  1599464     1 0.6252094     0.8315038
+## 10   Illinois 12868747     6 0.4662459     0.5177696
+## # ... with 23 more rows
 {% endhighlight %}
 
 How do the two values compare?
@@ -165,20 +165,20 @@ state_counts
 
 
 {% highlight text %}
-## # A tibble: 30 × 7
+## # A tibble: 33 × 7
 ##    state_name  pop2014     n      rate rate_estimate    alpha1    beta1
 ##        <fctr>    <dbl> <dbl>     <dbl>         <dbl>     <dbl>    <dbl>
-## 1     Alabama  4817678     9 1.8681199     1.7148065 10.076171  5875972
-## 2     Arizona  6561516     2 0.3048076     0.4037066  3.076171  7619817
-## 3    Arkansas  2947036     1 0.3393240     0.5183509  2.076171  4005338
-## 4  California 38066920    26 0.6830077     0.6920388 27.076171 39125197
-## 5    Colorado  5197580     3 0.5771917     0.6515740  4.076171  6255880
-## 6     Florida 19361792     4 0.2065924     0.2485870  5.076171 20420091
-## 7     Georgia  9907756    21 2.1195516     2.0131362 22.076171 10966038
-## 8      Hawaii  1392704     6 4.3081660     2.8870458  7.076171  2451001
-## 9       Idaho  1599464     1 0.6252094     0.7811711  2.076171  2657766
-## 10   Illinois 12868747     5 0.3885382     0.4362856  6.076171 13927045
-## # ... with 20 more rows
+## 1     Alabama  4817678    12 2.4908265     2.2473115 13.212753  5879346
+## 2     Arizona  6561516     4 0.6096152     0.6838013  5.212753  7623192
+## 3    Arkansas  2947036     1 0.3393240     0.5519852  2.212753  4008715
+## 4  California 38066920    34 0.8931639     0.8999236 35.212753 39128566
+## 5    Colorado  5197580     3 0.5771917     0.6730431  4.212753  6259257
+## 6     Florida 19361792     4 0.2065924     0.2552334  5.212753 20423468
+## 7     Georgia  9907756    22 2.2204826     2.1161297 23.212753 10969414
+## 8      Hawaii  1392704     6 4.3081660     2.9387203  7.212753  2454378
+## 9       Idaho  1599464     1 0.6252094     0.8315038  2.212753  2661143
+## 10   Illinois 12868747     6 0.4662459     0.5177696  7.212753 13930421
+## # ... with 23 more rows
 {% endhighlight %}
 
 Let's plot a few of these to see what they look like.
@@ -208,7 +208,7 @@ ggplot(counts_beta, aes(x, density, color = state_name)) +
 
 ![center](/figs/2016-09-28-Bayesian-Blues/unnamed-chunk-9-1.png)
 
-Notice that New York, which was mentioned in many songs, has a narrow posterior probability distribution; we have more precise knowledge about the rate for New York. Hawaii's posterior probability distribution is centered at about the same spot but it is a broad probability distribution; we have less precise knowledge about the rate for Hawaii, because Hawaii was only mentioned in a few songs!
+Notice that New York, which was mentioned in many songs, has a narrow posterior probability distribution; we have more precise knowledge about the rate for New York. Hawaii, by contrast, has a broad probability distribution; we have less precise knowledge about the rate for Hawaii, because Hawaii was only mentioned in a few songs!
 
 We can use these posterior probability distributions to calculate credible intervals, an estimate of how uncertain each of these measurements is, analogous to a confidence interval. (BUT SO DIFFERENT, everyone tells me. ON A PHILOSOPHICAL LEVEL.)
 
