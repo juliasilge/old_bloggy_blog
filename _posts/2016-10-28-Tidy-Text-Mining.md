@@ -107,7 +107,7 @@ Since the last release of this package, we published a [short paper on tidytext]
 
 I am even *more* excited to [publicly announce the book](http://tidytextmining.com/) that Dave and I have been working on.
 
-[![center](/figs/2016-10-27-Tidy-Text-Mining/screenshot.png)](http://tidytextmining.com/)
+[![center](/figs/2016-10-28-Tidy-Text-Mining/screenshot.png)](http://tidytextmining.com/)
 
 Dave and I have used the [bookdown](https://github.com/rstudio/bookdown) package by Yihui Xie to write and build our book on text mining using tidy data principles. Our goal in writing this book is to provide resources and examples for people who want to use tidy tools to approach natural language processing tasks. The intended audience for this book includes people (like us!) who don't have extensive backgrounds in computational linguistics but who need or want to analyze unstructured, text-heavy data. Using tidy data principles can make text mining easier, more effective, and consistent with tools that are already being used widely by many data scientists and analysts.
 
@@ -115,13 +115,13 @@ The book is partly composed of material from blog posts by both of us, the packa
 
 The book also includes new material that we haven't published elsewhere. [One chapter](http://tidytextmining.com/twitter.html) is about analyzing our own Twitter archives. How have Dave and I used our Twitter accounts?
 
-[![center](/figs/2016-10-27-Tidy-Text-Mining/spread-1.png)](http://tidytextmining.com/twitter.html)
+[![center](/figs/2016-10-28-Tidy-Text-Mining/spread-1.png)](http://tidytextmining.com/twitter.html)
 
 QUITE DIFFERENTLY, IT TURNS OUT.
 
 [Another chapter](http://tidytextmining.com/nasa.html) that I am really excited about focuses on exploring NASA metadata. I am part of the [NASA Datanauts](https://open.nasa.gov/explore/datanauts/) class of 2016; it has been a great experience with lots of opportunities to meet interesting people and learn. The program is mostly oriented toward underrepresented groups in tech and is open to a variety of skill levels, including those who are true newcomers. I highly recommend applying for next year's program if it might be a good fit for you! One of the projects I've worked on through this program is exploring NASA metadata. There are 32,000+ datasets at NASA, and we can use the metadata for these datasets to understand the connections between them. For just a sneak peek, here is a network of the most commonly co-occurring words in the titles of NASA datasets.
 
-[![center](/figs/2016-10-27-Tidy-Text-Mining/plot_title-1.png)](http://tidytextmining.com/nasa.html)
+[![center](/figs/2016-10-28-Tidy-Text-Mining/plot_title-1.png)](http://tidytextmining.com/nasa.html)
 
 
 ## The End
