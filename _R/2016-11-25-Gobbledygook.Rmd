@@ -27,7 +27,7 @@ This seems like it is perfectly suited to an analysis using tidy data principles
 
 ## Getting some texts to analyze
 
-Let's use the [gutenbergr package](https://github.com/ropenscilabs/gutenbergr) to obtain three book texts to compare. I want to compare:
+Let's use the [gutenbergr package](https://github.com/ropenscilabs/gutenbergr) to obtain some book texts to compare. I want to compare:
 
 - [*Anne of Green Gables* by L. M. Montgomery](https://www.gutenberg.org/ebooks/45)
 - [*Little Women* by Louisa May Alcott](https://www.gutenberg.org/ebooks/514)

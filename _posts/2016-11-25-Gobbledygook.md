@@ -23,7 +23,7 @@ This seems like it is perfectly suited to an analysis using tidy data principles
 
 ## Getting some texts to analyze
 
-Let's use the [gutenbergr package](https://github.com/ropenscilabs/gutenbergr) to obtain three book texts to compare. I want to compare:
+Let's use the [gutenbergr package](https://github.com/ropenscilabs/gutenbergr) to obtain some book texts to compare. I want to compare:
 
 - [*Anne of Green Gables* by L. M. Montgomery](https://www.gutenberg.org/ebooks/45)
 - [*Little Women* by Louisa May Alcott](https://www.gutenberg.org/ebooks/514)
@@ -131,13 +131,13 @@ tidybooks %>%
 
 {% highlight text %}
 ## # A tibble: 5 × 1
-##                                                                                                                                                 sentence
-##                                                                                                                                                    <chr>
-## 1           "i guess the princess gave him a posy, and opened the gate after a while," said laurie, smiling to himself, as he threw acorns at his tutor.
-## 2                                                                                                                    those august hands no longer moved.
-## 3             at one corner of the wide, low wall was a seat, and here amy often came to read or work, or console herself with the beauty all about her.
-## 4 this did not suit jo at all, but she accepted the place since nothing better appeared and, to every one's surprise, got on remarkably well with her ir
-## 5                                                          blachevelle smiled with the voluptuous self-conceit of a man who is tickled in his self-love.
+##                                                                                                                                              sentence
+##                                                                                                                                                 <chr>
+## 1 marius was struck with the beauty of this white hair, and scrutinized the man, who was walking slowly and as though absorbed in painful meditation.
+## 2                                                           she removed one hand from his arm, and with the other made him a sign to look behind him.
+## 3                                                                                                                     by you, i was properly humbled.
+## 4                                                                                   only he says we must first make sure that it is a worthy purpose.
+## 5                                                                                            no, she could not take the responsibility of doing that!
 {% endhighlight %}
 
 Pretty well! Especially considering the whole thing errors out without `iconv`.
@@ -301,13 +301,20 @@ results
 
 {% highlight text %}
 ## # A tibble: 5 × 4
-##                                     title n_sentences n_polysyllables      SMOG
-##                                     <chr>       <int>           <int>     <dbl>
-## 1 A Portrait of the Artist as a Young Man        4480            5648  9.543459
-## 2                    Anne of Green Gables        7176            7664  9.032898
-## 3                          Les Misérables       34228           55114 10.378218
-## 4                            Little Women        9888           11590  9.313996
-## 5                     Pride and Prejudice        6524           13180 11.248906
+##                                     title n_sentences n_polysyllables
+##                                     <chr>       <int>           <int>
+## 1 A Portrait of the Artist as a Young Man        4480            5648
+## 2                    Anne of Green Gables        7176            7664
+## 3                          Les Misérables       34228           55114
+## 4                            Little Women        9888           11590
+## 5                     Pride and Prejudice        6524           13180
+##        SMOG
+##       <dbl>
+## 1  9.543459
+## 2  9.032898
+## 3 10.378218
+## 4  9.313996
+## 5 11.248906
 {% endhighlight %}
 
 L.M. Montgomery, writing here for an audience of young girls, has the lowest SMOG grade at around 9 (i.e., approximately beginning 9th grade level). *Pride and Prejudice* has the highest SMOG grade at 11.2, more than two years of education higher. I will say that throwing *A Portrait of the Artist as a Young Man* in here turned out to be an interesting choice; in reality, I find it to be practically unreadable but it has a readability score close to the same as *Little Women*. This measure of prose readability based only on number of sentences and number of words with lots of syllables doesn't measure what we might expect when applied to extremely stylized text.
