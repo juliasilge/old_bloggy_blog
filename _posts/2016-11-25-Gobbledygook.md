@@ -16,6 +16,7 @@ In learning more about [text mining](http://tidytextmining.com/) over the past s
 One of the most commonly used ways to measure readability is a [SMOG](https://en.wikipedia.org/wiki/SMOG) grade, which stands for "Simple Measure of Gobbledygook". It may have a silly (SILLY WONDERFUL) name, but it is often considered the gold standard of readability formulas and performs well in many contexts. We calculate a SMOG score using the formula
 
 $$\text{SMOG} = 1.0430\sqrt{\frac{30n_{\text{polysyllables}}}{n_{\text{sentences}}}} + 3.1291$$
+
 where the number in the numerator measures the number of words with 3 or more syllables and the number in the denominator measures the number of sentences. You can see that SMOG is going to be higher for texts with a lot of words with many syllables in each sentence. These ratios are typically normalized to use a sample of 30 sentences, and then the SMOG grade is supposed to estimate the years of education needed to understand a text.
 
 This seems like it is perfectly suited to an analysis using tidy data principles, so let's use the [tidytext package](https://github.com/juliasilge/tidytext) to compare the readability of several texts.
@@ -132,11 +133,11 @@ tidybooks %>%
 ## # A tibble: 5 × 1
 ##                                                                                                                                                 sentence
 ##                                                                                                                                                    <chr>
-## 1                         in this peaceful street where he had taken refuge, jean valjean got rid of all that had been troubling him for some time past.
-## 2 he met, in the narrow streets in the vicinity of the boulevard des invalides, a man dressed like a workingman and wearing a cap with a long visor, whi
-## 3                                                              she removed one hand from his arm, and with the other made him a sign to look behind him.
-## 4                                                                                   you taught me a lesson, hard indeed at first, but most advantageous.
-## 5                                                                                      only he says we must first make sure that it is a worthy purpose.
+## 1           "i guess the princess gave him a posy, and opened the gate after a while," said laurie, smiling to himself, as he threw acorns at his tutor.
+## 2                                                                                                                    those august hands no longer moved.
+## 3             at one corner of the wide, low wall was a seat, and here amy often came to read or work, or console herself with the beauty all about her.
+## 4 this did not suit jo at all, but she accepted the place since nothing better appeared and, to every one's surprise, got on remarkably well with her ir
+## 5                                                          blachevelle smiled with the voluptuous self-conceit of a man who is tickled in his self-love.
 {% endhighlight %}
 
 Pretty well! Especially considering the whole thing errors out without `iconv`.
@@ -300,20 +301,13 @@ results
 
 {% highlight text %}
 ## # A tibble: 5 × 4
-##                                     title n_sentences n_polysyllables
-##                                     <chr>       <int>           <int>
-## 1 A Portrait of the Artist as a Young Man        4480            5648
-## 2                    Anne of Green Gables        7176            7664
-## 3                          Les Misérables       34228           55114
-## 4                            Little Women        9888           11590
-## 5                     Pride and Prejudice        6524           13180
-##        SMOG
-##       <dbl>
-## 1  9.543459
-## 2  9.032898
-## 3 10.378218
-## 4  9.313996
-## 5 11.248906
+##                                     title n_sentences n_polysyllables      SMOG
+##                                     <chr>       <int>           <int>     <dbl>
+## 1 A Portrait of the Artist as a Young Man        4480            5648  9.543459
+## 2                    Anne of Green Gables        7176            7664  9.032898
+## 3                          Les Misérables       34228           55114 10.378218
+## 4                            Little Women        9888           11590  9.313996
+## 5                     Pride and Prejudice        6524           13180 11.248906
 {% endhighlight %}
 
 L.M. Montgomery, writing here for an audience of young girls, has the lowest SMOG grade at around 9 (i.e., approximately beginning 9th grade level). *Pride and Prejudice* has the highest SMOG grade at 11.2, more than two years of education higher. I will say that throwing *A Portrait of the Artist as a Young Man* in here turned out to be an interesting choice; in reality, I find it to be practically unreadable but it has a readability score close to the same as *Little Women*. This measure of prose readability based only on number of sentences and number of words with lots of syllables doesn't measure what we might expect when applied to extremely stylized text.

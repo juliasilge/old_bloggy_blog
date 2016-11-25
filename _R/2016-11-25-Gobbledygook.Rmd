@@ -20,6 +20,7 @@ In learning more about [text mining](http://tidytextmining.com/) over the past s
 One of the most commonly used ways to measure readability is a [SMOG](https://en.wikipedia.org/wiki/SMOG) grade, which stands for "Simple Measure of Gobbledygook". It may have a silly (SILLY WONDERFUL) name, but it is often considered the gold standard of readability formulas and performs well in many contexts. We calculate a SMOG score using the formula
 
 $$\text{SMOG} = 1.0430\sqrt{\frac{30n_{\text{polysyllables}}}{n_{\text{sentences}}}} + 3.1291$$
+
 where the number in the numerator measures the number of words with 3 or more syllables and the number in the denominator measures the number of sentences. You can see that SMOG is going to be higher for texts with a lot of words with many syllables in each sentence. These ratios are typically normalized to use a sample of 30 sentences, and then the SMOG grade is supposed to estimate the years of education needed to understand a text.
 
 This seems like it is perfectly suited to an analysis using tidy data principles, so let's use the [tidytext package](https://github.com/juliasilge/tidytext) to compare the readability of several texts.
