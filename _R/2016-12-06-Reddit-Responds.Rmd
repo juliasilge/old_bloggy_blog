@@ -1,0 +1,275 @@
+---
+layout: post
+title: "Reddit Responds to the Election"
+date: 2016-12-06
+output: html_document
+share: true
+categories: blog
+excerpt: "Text mining of one day's submissions on Reddit"
+tags: [rstats]
+---
+
+```{r, echo = FALSE, warning = FALSE}
+library(knitr)
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE, message = FALSE, 
+                      cache.lazy = FALSE, dpi = 180)
+options(width=80, dplyr.width = 150)
+library(ggplot2)
+theme_set(theme_minimal(base_family = "RobotoCondensed-Regular") +
+          theme(plot.title=element_text(family="Roboto-Bold")))
+```
+
+It's been about a month since the U.S. presidential election, with Donald Trump's victory over Hillary Clinton coming as a surprise to most. Reddit user Jason Baumgartner collected and published [every submission and comment posted to Reddit](https://www.reddit.com/r/datasets/comments/5ch2bq/reddit_raw_election_data_comments_and_submissions/) on the day of (and a bit surrounding) the U.S. election; let's explore this data set and see what kinds of things we can learn.
+
+## Data wrangling
+
+This first bit was the hardest part of this analysis for me, probably because I am not the most experienced JSON person out there. At first, I took an approach of reading in the lines of each text file and parsing each JSON object separately. I [complained about this on Twitter](https://twitter.com/juliasilge/status/805915916961718272) and got several excellent recommendations of much better approaches, including using `stream_in` from the [jsonlite](https://github.com/jeroenooms/jsonlite) package. This works way better and faster than what I was doing before, and now it is easy!
+
+```{r}
+library(jsonlite)
+library(dplyr)
+
+nov8_posts <- stream_in(file("RS_2016-11-08"),
+                        verbose = FALSE) %>%
+    select(-preview, -secure_media_embed, 
+           -media, -secure_media, -media_embed)
+
+nov9_posts <- stream_in(file("RS_2016-11-09"),
+                        verbose = FALSE) %>%
+    select(-preview, -secure_media_embed, 
+           -media, -secure_media, -media_embed)
+
+posts <- bind_rows(nov8_posts, nov9_posts) %>%
+    mutate(created_utc = as.POSIXct(created_utc, 
+                                    origin = "1970-01-01", 
+                                    tz = "UTC")) %>%
+    filter(created_utc > as.POSIXct("2016-11-08 18:00:00", tz = "UTC"))
+```
+
+Notice here that I am using files from November 8 and 9 in UTC time and I'm filtering out some of the earlier posts. This will end up leaving me with 30 hours of Reddit posts starting at noon on Election Day in the Central Time Zone. Also notice that I am not using the files that include Reddit comments, only the parent submissions. I tried most of the following analysis with both submissions and comments, but the comments dominated the results and included lots of repeated words/phrases that obscured what we would like to see. For the approach I am taking here, it worked better to just use submissions.
+
+## Finding the words
+
+The submissions include a title and sometimes also some text; sometimes Reddit posts are just the title. Let's use `unnest_tokens` from the [tidytext](https://github.com/juliasilge/tidytext) package to identify all the words in the title and text fields of the submissions and organize them into a tidy data structure.
+
+```{r}
+library(tidytext)
+
+posts <- bind_rows(
+    posts %>% 
+        unnest_tokens(word, title),
+    posts %>% 
+        unnest_tokens(word, selftext)) %>%
+    select(created_utc, subreddit, url, word)
+
+head(posts)
+dim(posts)
+```
+
+That's... almost 18 million rows. People on Reddit are busy.
+
+## Which words changed in frequency the fastest?
+
+Right now we have a data frame that has each word on its own row, with an id (url), the time when it was posted, and the subreddit it came from. Let's use dplyr operations to calculate how many times each word was mentioned in a particular unit of time, so we can model the change with time. We will calculate `minute_total`, the total words posted in that time unit so we can compare across times of day when people post different amounts, and `word_total`, the number of times that word was posted so we can filter out words that are not used much.
+
+```{r}
+library(lubridate)
+library(stringr)
+
+words_by_minute <- posts %>%
+    filter(str_detect(word, "[a-z]")) %>%
+    anti_join(data_frame(word = c("ref"))) %>%
+    mutate(created = floor_date(created_utc, unit = "30 minutes")) %>%
+    distinct(url, word, .keep_all = TRUE) %>%
+    count(created, word) %>%
+    ungroup() %>%
+    group_by(created) %>%
+    mutate(minute_total = sum(n)) %>%
+    group_by(word) %>%
+    mutate(word_total = sum(n)) %>%
+    ungroup() %>%
+    rename(count = n) %>%
+    filter(word_total > 500)
+
+head(words_by_minute)
+```
+
+This is the data frame we can use for modeling. We can use `nest` from tidyr to make a data frame with a list column that contains the little miniature data frames for each word and then `map` from purrr to apply our modeling procedure to each of those little data frames inside our big data frame. Jenny Bryan has put together [some resources](https://jennybc.github.io/purrr-tutorial/) on using purrr with list columns this way. This is count data (how many words were posted?) so let's use `glm` for modeling.
+
+```{r}
+library(tidyr)
+library(purrr)
+
+nested_models <- words_by_minute %>%
+    nest(-word) %>%
+    mutate(models = map(data, ~ glm(cbind(count, minute_total) ~ created, ., 
+                                    family = "binomial")))
+```
+
+Now we can use `tidy` from broom to pull out the slopes for each of these models and find the important ones.
+
+```{r}
+library(broom)
+
+slopes <- nested_models %>%
+  unnest(map(models, tidy)) %>%
+  filter(term == "created", p.value < 0.05)
+```
+
+Which words decreased in frequency of use the fastest during Election Day? Which words increased in use the fastest?
+
+```{r}
+slopes %>% 
+    arrange(estimate)
+slopes %>% 
+    arrange(desc(estimate))
+```
+
+Let's plot these words.
+
+```{r, fig.width=8, fig.height=5}
+top_slopes <- slopes %>%
+    top_n(10, estimate)
+
+words_by_minute %>%
+    inner_join(top_slopes, by = "word") %>%
+    mutate(created = with_tz(created, tz = "America/Chicago")) %>%
+    ggplot(aes(created, count/minute_total, color = word)) +
+    geom_line(alpha = 0.8, size = 1.3) +
+    labs(x = "Time (Central Time Zone)", y = "Word frequency",
+         subtitle = "Words associated with Trump and policies increased in frequency",
+         title = "Trending words on Reddit on Election Day")
+```
+
+There are lots of election-related words here, like "elect", "liberals", and "policies". In fact, I think all of these words are conceivably related to the election with the exception of "flex". I looked at some of the posts with "flex" in them and they were in fact not election-related. I had a hard time deciphering what they *were* about, but my best guess is either a) fantasy football or b) some kind of gaming. Why do we see "Trump's" on this plot twice? It is because there is more than one way of encoding an apostrophe. You can see it on the legend if you look closely.
+
+We don't see Trump's name by itself on this plot. How far off from being a top word, by my definition here, was it?
+
+```{r}
+slopes %>%
+    filter(word == "trump")
+```
+
+Trump must have been being discussed at a high level already, so the change was not as big as for the word "Trump's".
+
+What about the words that dropped in use the most during this day?
+
+```{r, fig.width=8, fig.height=5}
+low_slopes <- slopes %>%
+    top_n(-10, estimate)
+
+words_by_minute %>%
+    inner_join(low_slopes, by = "word") %>%
+    mutate(created = with_tz(created, tz = "America/Chicago")) %>%
+    ggplot(aes(created, count/minute_total, color = word)) +
+    geom_line(alpha = 0.8, size = 1.3) +
+    labs(x = "Time (Central Time Zone)", y = "Word frequency",
+         subtitle = "Word associated with voting and polls decreased in frequency",
+         title = "Trending words on Reddit on Election Day")
+```
+
+These are maybe even *more* interesting to me. Look at that spike for Florida the night of November 8 when it seemed like there might be flashbacks to 2000 or something. And people's interest in discussing voters/voting, polls/polling, and fraud dropped off precipitously as Trump's victory became obvious.
+
+## Which subreddits demonstrated the most change in sentiment?
+
+We have looked at which words changed most quickly in use on Election Day; now let's take a look at changes in sentiment. Are there subreddits that exhibited changes in sentiment over the course of this time period? To look at this, we'll take a bigger time period (2 hours instead of 30 minutes) since the words with measured sentiment are only a subset of all words. Much of the rest of these dplyr operations are similar. We can use `inner_join` to do the sentiment analysis, and then calculate the sentiment content of each board in each time period.
+
+```{r}
+sentiment_by_minute <- posts %>%
+    mutate(created = floor_date(created_utc, unit = "2 hours")) %>%
+    distinct(url, word, .keep_all = TRUE) %>%
+    ungroup() %>%
+    count(subreddit, created, word) %>%
+    group_by(created, subreddit) %>%
+    mutate(minute_total = sum(n)) %>%
+    group_by(subreddit) %>%
+    mutate(subreddit_total = sum(n)) %>%
+    ungroup() %>%
+    filter(subreddit_total > 1000) %>%
+    inner_join(get_sentiments("afinn")) %>%
+    group_by(subreddit, created, minute_total) %>%
+    summarize(score = sum(n * score)) %>%
+    ungroup()
+
+head(sentiment_by_minute)
+```
+
+Let's again use `nest`, but this time we'll `nest` by subreddit instead of word. This sentiment score is not really count data (since it can be negative) so we'll use regular old `lm` here.
+
+```{r}
+nested_models <- sentiment_by_minute %>%
+    nest(-subreddit) %>%
+    mutate(models = map(data, ~ lm(score/minute_total ~ created, .)))
+```
+
+Let's again use `unnest`, `map`, and `tidy` to extract out the slopes from the linear models.
+
+```{r}
+slopes <- nested_models %>%
+  unnest(map(models, tidy)) %>%
+  filter(term == "created", p.value < 0.05)
+```
+
+Which subreddits exhibited the biggest changes in sentiment, in either direction?
+
+```{r}
+slopes %>% 
+    arrange(estimate)
+slopes %>% 
+    arrange(desc(estimate))
+```
+
+Let's plot these!
+
+```{r, fig.width=8, fig.height=5}
+top_slopes <- slopes %>%
+    top_n(10, estimate)
+
+sentiment_by_minute %>%
+    inner_join(top_slopes, by = "subreddit") %>%
+    mutate(created = with_tz(created, tz = "America/Chicago")) %>%
+    ggplot(aes(created, score/minute_total, color = subreddit)) +
+    geom_line(alpha = 0.8, size = 1.3) +
+    labs(x = "Time (Central Time Zone)", y = "Sentiment score",
+         subtitle = "These subreddits increased in sentiment the most",
+         title = "Sentiment on Subreddits on Election Day")
+
+```
+
+These relationships are much noisier than the relationships with words were. Also, these subreddits are less related to the election than the quickly changing words were. Really only the shouldvebeenbernie subreddit is that political here.
+
+```{r, fig.width=8, fig.height=5}
+low_slopes <- slopes %>%
+    top_n(-10, estimate)
+
+sentiment_by_minute %>%
+    inner_join(low_slopes, by = "subreddit") %>%
+    mutate(created = with_tz(created, tz = "America/Chicago")) %>%
+    ggplot(aes(created, score/minute_total, color = subreddit)) +
+    geom_line(alpha = 0.8, size = 1.3) +
+    labs(x = "Time (Central Time Zone)", y = "Sentiment score",
+         subtitle = "These subreddits decreased in sentiment the most",
+         title = "Sentiment on Subreddits on Election Day")
+```
+
+Again, we see that not really any of these are specifically political, although I coudld image that the aznidentity subreddit (Asian identity board) and the ainbow subreddit (LGBT board) could have been feeling down after Trump's election. The 1liga board is a German language board and ended up here because it used the word "die" a lot. In case you are wondering, the parrots subreddit is, in fact, about parrots; hopefully nothing too terrible was happening to the parrots on Election Day.
+
+## Which subreddits have the most dramatic word use?
+
+Those last plots demonstrated with subreddits were changing in sentiment the fastest around the time of the election, but perhaps we would like to know which subreddits used the largest proportion of high or low sentiment words overall during this time period. To do that, we don't need to keep track of the timestamp of the posts. Instead, we just need to `count` by subreddit and word, then use `inner_join` to find a sentiment score.
+
+```{r}
+sentiment_by_subreddit <- posts %>%
+    distinct(url, word, .keep_all = TRUE) %>%
+    count(subreddit, word) %>%
+    ungroup() %>%
+    inner_join(get_sentiments("afinn")) %>%
+    group_by(subreddit) %>%
+    summarize(score = sum(score * n) / sum(n))
+```
+
+I would print some out for you, or plot them or something, but they are almost all extremely NSFW, both the positive and negative sentiment subreddits. I'm sure you can use your imagination.
+
+## The End
+
+This is just one approach to take with this extremely extensive data set. There is still lots and lots more that could be done with it. I first saw this data set via Jeremy Singer-Vine's [Data Is Plural newsletter](https://tinyletter.com/data-is-plural); this newsletter is an excellent resource and I highly recommend it. The R Markdown file used to make this blog post is available [here](https://github.com/juliasilge/juliasilge.github.io/blob/master/_R/2016-12-06-Reddit-Responds.Rmd). I am very happy to hear feedback or questions!
