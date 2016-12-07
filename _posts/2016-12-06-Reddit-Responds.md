@@ -154,7 +154,7 @@ library(broom)
 
 slopes <- nested_models %>%
   unnest(map(models, tidy)) %>%
-  filter(term == "created", p.value < 0.05)
+  filter(term == "created")
 {% endhighlight %}
 
 Which words decreased in frequency of use the fastest during Election Day? Which words increased in use the fastest?
@@ -325,7 +325,7 @@ Let's again use `unnest`, `map`, and `tidy` to extract out the slopes from the l
 {% highlight r %}
 slopes <- nested_models %>%
   unnest(map(models, tidy)) %>%
-  filter(term == "created", p.value < 0.05)
+  filter(term == "created")
 {% endhighlight %}
 
 Which subreddits exhibited the biggest changes in sentiment, in either direction?
@@ -400,7 +400,7 @@ sentiment_by_minute %>%
 
 ![center](/figs/2016-12-06-Reddit-Responds/unnamed-chunk-15-1.png)
 
-These relationships are much noisier than the relationships with words were. Also, these subreddits are less related to the election than the quickly changing words were. Really only the shouldvebeenbernie subreddit is that political here.
+These relationships are much noisier than the relationships with words were, and you might notice that some p-values are getting kind of high (no adjustment for multiple comparisons has been performed). Also, these subreddits are less related to the election than the quickly changing words were. Really only the shouldvebeenbernie subreddit is that political here.
 
 
 {% highlight r %}
