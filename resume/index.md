@@ -26,8 +26,11 @@ Experienced in using statistical techniques and numerical modeling with real-wor
 
 ## Experience
 
-#### Data Scientist, Datassist
+#### Data Scientist, Stack Overflow
 2016-present
+
+#### Data Scientist, Datassist
+2016
 
 * Develop statistical survey weighting tools (implemented in R) for nonprofits, local governments, social service agencies, and others.
 * Analyze complex data sets from clients to create clear and compelling reports, visualizations, and interactive apps.

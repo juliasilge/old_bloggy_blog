@@ -35,7 +35,7 @@ exclude: ["lib", "config.rb", "Capfile", "config", "log", "Rakefile", "Rakefile.
 # Site owner
 owner:
   name: Julia Silge
-  avatar: P9200123.jpg
+  avatar: blog_profile.jpg
   email: julia.silge@gmail.com
   disqus-shortname: datascienceish
   twitter: juliasilge
