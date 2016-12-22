@@ -2,7 +2,7 @@
 layout: page
 title: About Me
 image:
-  feature: portraitwide.jpg
+  feature: portrait_wide.jpg
   credit: Austin Wright
   creditlink: http://www.jaustinwright.com/
 ---
