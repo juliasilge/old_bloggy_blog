@@ -1,0 +1,187 @@
+---
+layout: post
+title: "Scraping CRAN with rvest"
+date: 2016-03-06
+output: html_document
+share: true
+categories: blog
+excerpt: "Packages, versions, and archiving"
+tags: [rstats]
+---
+
+```{r, echo = FALSE, warning = FALSE}
+library(knitr)
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE, message = FALSE, 
+                      cache.lazy = FALSE, dpi = 180)
+options(width=120, dplyr.width = 150)
+library(ggplot2)
+library(silgelib)
+theme_set(theme_roboto())
+```
+
+I am participating in a session at [userR 2017](https://user2017.brussels/) this coming July focusing on discovering and learning about R packages. How do R users find packages that meet their needs? Can we make this process easier? As somebody who is relatively new to the R world compared to many, this is a topic that resonates with me and I am happy to be part of the discussion. I am working on this session with [John Nash](http://web5.uottawa.ca/www2/mcs-smc/media/experts-details-iframe-93.html) and [Spencer Graves](https://www.r-pkg.org/maint/spencer.graves@prodsyse.com), and we hope that some useful discussion and results come out of the session.
+
+In preparation for this session, I wanted to look at the distribution of R packages by date, number of version, etc. There have been [some great plots](http://blog.revolutionanalytics.com/2017/01/cran-10000.html) that came out around the time when CRAN passed the 10,000 package mark but most of the code to make those scripts involve packages and idioms I am less familiar with, so here is an rvest and tidyverse centered version of those analyses!
+
+## Scraping CRAN
+
+The first thing we need to do is get all the packages that are currently available on CRAN. Let's use [rvest](https://github.com/hadley/rvest) to scrape the [page that lists all the packages currently on CRAN](https://cran.rstudio.com/src/contrib). It also has some other directories besides packages so we can use `filter` to remove the things that don't look like R packages.
+
+```{r}
+library(rvest)
+library(stringr)
+library(lubridate)
+library(tidyverse)
+
+cran_link <- function(...) {
+    file.path("https://cran.rstudio.com/src/contrib", ...)
+}
+
+pkgs_raw <- read_html(cran_link()) %>% 
+    html_nodes("table") %>% 
+    .[[1]] %>%
+    html_table()
+
+pkgs_raw <- pkgs_raw[,-1]
+
+pkgs <- pkgs_raw %>%
+    filter(Size != "-",
+           str_detect(Name, "tar.gz$")) %>%
+    mutate(Date = dmy_hm(`Last modified`),
+           Name = str_extract(Name, "^[^_]+(?=_)")) %>%
+    select(-Size, -Description) %>%
+    as_tibble()
+
+pkgs
+```
+
+So that's currently available packages!
+
+Now let's turn to the [archive](https://cran.rstudio.com/src/contrib/Archive/). Let's do a similar operation.
+
+```{r}
+archives_raw <- read_html(cran_link("Archive")) %>% 
+    html_nodes("table") %>% 
+    .[[1]] %>%
+    html_table()
+
+archives_raw <- archives_raw[,-1]
+
+archives_processed <- archives_raw %>%
+    filter(str_detect(Name, "/$")) %>%
+    mutate(Date = dmy_hm(`Last modified`),
+           Name = str_sub(Name, end = -2)) %>%
+    select(-Size, -Description) %>%
+    as_tibble()
+
+archives_processed
+```
+
+That is good, but now we need to get more detailed information for packages that have been archived at least once to get the date they originally were released and how many versions they have had.
+
+## Visiting every page in the archive
+
+Let's set up a function for scraping an individual page for a package and apply that to every page in the archive. This step takes A WHILE because it queries a web page for every package in the CRAN archive. I've set this up with `map` from purrr; it is one of my favorite ways to organize tasks these days.
+
+```{r}
+read_page <- function(name) {
+    message(name)
+    read_html(cran_link("Archive", name)) %>% 
+        html_nodes("td") %>% 
+        html_text()
+}
+
+archives_scraped <- archives_processed %>%
+    mutate(page = map(Name, read_page))
+```
+
+What do these pages look like?
+
+```{r}
+archives_scraped$page[8457]
+```
+
+This is exactly what we need: the dates that the packages were released and how many times they have been released. Let's use `mutate` and `map` again to extract these values.
+
+```{r}
+archives <- archives_scraped %>%
+    mutate(Date = dmy_hm(map_chr(page, ~ .[8])),
+           ArchivedVersions = map_dbl(page, ~ length(.) / 5 - 1)) %>%
+    select(-page)
+
+archives
+```
+
+## Putting it together
+
+Not it's time to join the data from the currently available packages and the archives.
+
+- Packages that are in `archives` but not `pkgs` are no longer on CRAN.
+- Packages that are in `pkgs` but not `archives` only have one CRAN release.
+- Packages that are in both dataframes have had more than one CRAN release.
+
+Sounds like a good time to use `anti_join` and `inner_join`.
+
+```{r}
+all_pkgs <- bind_rows(archives %>% 
+                          anti_join(pkgs, by = "Name") %>% 
+                          mutate(Archived = TRUE),
+                      pkgs %>% 
+                          anti_join(archives, by = "Name") %>% 
+                          mutate(ArchivedVersions = 0,
+                                 Archived = FALSE),
+                      archives %>%
+                          semi_join(pkgs, by = "Name") %>%
+                          mutate(Archived = FALSE)) %>%
+    mutate(Versions = ifelse(Archived, ArchivedVersions, ArchivedVersions + 1)) %>%
+    arrange(Name)
+
+all_pkgs
+```
+
+## Plotting results
+
+Let's look at some results now.
+
+```{r fig.width=8, fig.height=6}
+all_pkgs %>%
+    filter(!Archived) %>%
+    group_by(Date = floor_date(Date, unit = "month")) %>%
+    summarise(NewPackages = n()) %>%
+    ungroup %>%
+    mutate(TotalPackages = cumsum(NewPackages)) %>%
+    ggplot(aes(Date, TotalPackages)) +
+    geom_line(size = 1.5, alpha = 0.8, color = "midnightblue") +
+    labs(x = NULL, y = "Number of available packages",
+         title = "How many packages are available on CRAN?",
+         subtitle = "Only packages that are still available")
+```
+
+There we go! That is similar to the results we all saw going around when CRAN passed 10,000 packages, which is good.
+
+What about the number of archived vs. available packages?
+
+```{r fig.width=8, fig.height=8}
+all_pkgs %>%
+    ggplot(aes(Archived)) +
+    geom_histogram(stat = "count", alpha = 0.8, fill = "midnightblue") +
+    scale_x_discrete(labels=c("Still available", "Archived, no longer available")) +
+    labs(y = "Number of packages", x = NULL,
+         title = "How many packages are no longer available on CRAN?",
+         subtitle = "About 10% of total packages are no longer available")
+```
+
+And lastly, let's look at the distribution of number of releases for each package.
+
+```{r fig.width=8, fig.height=6}
+all_pkgs %>%
+    ggplot(aes(Versions)) +
+    geom_histogram(binwidth = 10, alpha = 0.8, fill = "midnightblue") +
+    labs(y = "Number of packages", x = "Number of versions on CRAN",
+         title = "How many versions do CRAN packages have?",
+         subtitle = "About 25% of packages are on their first version")
+```
+
+## The End
+
+It is pretty ironic that I worked on this code and wrote this post because I wanted to do an analysis using different packages than the ones used in the original scripts shared. That is exactly part of the challenge facing all of us as R users now that there is such a diversity of tools out there! I hope that our session at useR this summer provides some clarity and perspective for attendees on these types of issues. The R Markdown file used to make this blog post is available [here](https://github.com/juliasilge/juliasilge.github.io/blob/master/_R/2017-03-06-Scraping-CRAN.Rmd). I am very happy to hear feedback or questions!
