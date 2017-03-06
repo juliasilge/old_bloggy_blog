@@ -114,7 +114,7 @@ archives
 
 ## Putting it together
 
-Not it's time to join the data from the currently available packages and the archives.
+Now it's time to join the data from the currently available packages and the archives.
 
 - Packages that are in `archives` but not `pkgs` are no longer on CRAN.
 - Packages that are in `pkgs` but not `archives` only have one CRAN release.
