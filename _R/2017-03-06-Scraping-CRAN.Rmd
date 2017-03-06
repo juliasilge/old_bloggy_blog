@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Scraping CRAN with rvest"
-date: 2016-03-06
+date: 2017-03-06
 output: html_document
 share: true
 categories: blog
