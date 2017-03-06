@@ -11,7 +11,7 @@ tags: [rstats]
 
 
 
-I am participating in a session at [userR 2017](https://user2017.brussels/) this coming July focusing on discovering and learning about R packages. How do R users find packages that meet their needs? Can we make this process easier? As somebody who is relatively new to the R world compared to many, this is a topic that resonates with me and I am happy to be part of the discussion. I am working on this session with [John Nash](http://web5.uottawa.ca/www2/mcs-smc/media/experts-details-iframe-93.html) and [Spencer Graves](https://www.r-pkg.org/maint/spencer.graves@prodsyse.com), and we hope that some useful discussion and results come out of the session.
+I am one of the organizers for a session at [userR 2017](https://user2017.brussels/) this coming July that will focus on discovering and learning about R packages. How do R users find packages that meet their needs? Can we make this process easier? As somebody who is relatively new to the R world compared to many, this is a topic that resonates with me and I am happy to be part of the discussion. I am working on this session with [John Nash](http://web5.uottawa.ca/www2/mcs-smc/media/experts-details-iframe-93.html) and [Spencer Graves](https://www.r-pkg.org/maint/spencer.graves@prodsyse.com), and we hope that some useful discussion and results come out of the session.
 
 In preparation for this session, I wanted to look at the distribution of R packages by date, number of version, etc. There have been [some great plots](http://blog.revolutionanalytics.com/2017/01/cran-10000.html) that came out around the time when CRAN passed the 10,000 package mark but most of the code to make those scripts involve packages and idioms I am less familiar with, so here is an rvest and tidyverse centered version of those analyses!
 
@@ -178,7 +178,7 @@ archives
 
 ## Putting it together
 
-Not it's time to join the data from the currently available packages and the archives.
+Now it's time to join the data from the currently available packages and the archives.
 
 - Packages that are in `archives` but not `pkgs` are no longer on CRAN.
 - Packages that are in `pkgs` but not `archives` only have one CRAN release.
@@ -277,4 +277,4 @@ all_pkgs %>%
 
 ## The End
 
-It is pretty ironic that I worked on this code and wrote this post because I wanted to do an analysis using different packages than the ones used in the original scripts shared. That is exactly part of the challenge facing all of us as R users now that there is such a diversity of tools out there! I hope that our session at useR this summer provides some clarity and perspective for attendees on these types of issues. The R Markdown file used to make this blog post is available [here](https://github.com/juliasilge/juliasilge.github.io/blob/master/_R/2017-03-06-Scraping-CRAN.Rmd). I am very happy to hear feedback or questions!
+It is pretty ironic that I worked on this code and wrote this post because I wanted to do an analysis using different packages than the ones used in the original scripts shared. That is exactly part of the challenge facing all of us as R users now that there is such a diversity of tools out there! I hope that our session at useR this summer provides some clarity and perspective for attendees on these types of issues. The R Markdown file used to make this blog post is available [here](https://github.com/juliasilge/juliasilge.github.io/blob/master/_R/2017-03-06-Scraping-CRAN.Rmd). [Bob Rudis](https://rud.is/b/) has let me know that there are easier ways to get the data that I used for these plots, and I am very happy to hear about that or other feedback and questions!
