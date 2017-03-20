@@ -38,7 +38,7 @@ There is one question on the survey that allows the respondent to select all the
 
 - Email lists such as r-help, r-packages, or r-pkg-devel
 - General search websites such as Google and Yahoo
-- R-specific search websites such as [METACRAN](www.r-pkg.org) or [Rdocumentation](https://www.rdocumentation.org/)
+- R-specific search websites such as [METACRAN](https://www.r-pkg.org) or [Rdocumentation](https://www.rdocumentation.org/)
 - R packages built for search such as the [sos](https://cran.r-project.org/package=sos) package
 - CRAN Task Views
 - Your personal network, such as colleagues and professors
