@@ -12,7 +12,7 @@ tags: [rstats]
 
 
 
-I have been working with a data set on causes of death in my adopted home state of Utah for a little while now, and I had been struggling with the best way to visualize it. This week, [David Robinson released the `gganimate` package](https://github.com/dgrtwo/gganimate) to create animated `ggplot2` plots and I thought "AH HA! This is what I have needing." The data on causes of death in Utah is available [here via Utah's Open Data Catalog](https://opendata.utah.gov/Health/Leading-Causes-of-Death-by-Age-adjusted-Rate-Death/fu2n-aa2y) and can be accessed via Socrata Open Data API.
+I have been working with a data set on causes of death in my adopted home state of Utah for a little while now, and I had been struggling with the best way to visualize it. This week, [David Robinson released the `gganimate` package](https://github.com/dgrtwo/gganimate) to create animated `ggplot2` plots and I thought "AH HA! This is what I have needing." The data on causes of death in Utah is available [here via Utah's Open Data Catalog](https://opendata.utah.gov/Health/Leading-Causes-of-Death-Age-adjusted-Rate-Death-Pe/uvub-caeu) and can be accessed via Socrata Open Data API.
 
 
 {% highlight r %}
