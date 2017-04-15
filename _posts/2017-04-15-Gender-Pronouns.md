@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Gender roles with text mining and n-grams"
+title: "Gender Roles with Text Mining and N-grams"
 date: 2017-04-15
 output: html_document
 share: true
