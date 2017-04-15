@@ -59,8 +59,7 @@ That is all the bigrams from Jane Austen's works, but we only want the ones that
 pronouns <- c("he", "she")
 
 bigram_counts <- austen_bigrams %>%
-    count(book, bigram, sort = TRUE) %>%
-    ungroup() %>%
+    count(bigram, sort = TRUE) %>%
     separate(bigram, c("word1", "word2"), sep = " ") %>%
     filter(word1 %in% pronouns) %>%
     count(word1, word2, wt = n, sort = TRUE) %>%
@@ -94,13 +93,11 @@ There we go! These are the most common bigrams that start with "he" and "she" in
 {% highlight r %}
 word_ratios <- bigram_counts %>%
     group_by(word2) %>%
-    mutate(word_total = sum(total)) %>%
+    filter(sum(total) > 10) %>%
     ungroup() %>%
-    filter(word_total > 10) %>%
-    select(-word_total) %>%
     spread(word1, total, fill = 0) %>%
     mutate_if(is.numeric, funs((. + 1) / sum(. + 1))) %>%
-    mutate(logratio = log(she / he)) %>%
+    mutate(logratio = log2(she / he)) %>%
     arrange(desc(logratio))    
 {% endhighlight %}
 
@@ -118,16 +115,16 @@ word_ratios %>%
 ## # A tibble: 164 × 4
 ##           word2          he          she    logratio
 ##           <chr>       <dbl>        <dbl>       <dbl>
-## 1        always 0.001846438 0.0018956289  0.02629233
-## 2         loves 0.000923219 0.0008920607 -0.03433229
-## 3           too 0.000923219 0.0008920607 -0.03433229
-## 4          when 0.000923219 0.0008920607 -0.03433229
-## 5  acknowledged 0.001077089 0.0011150758  0.03466058
-## 6      remained 0.001077089 0.0011150758  0.03466058
-## 7           had 0.157562702 0.1642506690  0.04157024
-## 8        paused 0.001384828 0.0014495986  0.04571041
-## 9         would 0.040775504 0.0428189117  0.04889836
-## 10       turned 0.003077397 0.0032337199  0.04954919
+## 1        always 0.001846438 0.0018956289  0.03793181
+## 2         loves 0.000923219 0.0008920607 -0.04953103
+## 3           too 0.000923219 0.0008920607 -0.04953103
+## 4          when 0.000923219 0.0008920607 -0.04953103
+## 5  acknowledged 0.001077089 0.0011150758  0.05000464
+## 6      remained 0.001077089 0.0011150758  0.05000464
+## 7           had 0.157562702 0.1642506690  0.05997318
+## 8        paused 0.001384828 0.0014495986  0.06594619
+## 9         would 0.040775504 0.0428189117  0.07054542
+## 10       turned 0.003077397 0.0032337199  0.07148437
 ## # ... with 154 more rows
 {% endhighlight %}
 
@@ -152,8 +149,9 @@ word_ratios %>%
          title = "Words paired with 'he' and 'she' in Jane Austen's novels",
          subtitle = "Women remember, read, and feel while men stop, take, and reply") +
     scale_color_discrete(name = "", labels = c("More 'she'", "More 'he'")) +
-    scale_y_continuous(breaks = seq(-1, 2),
-                       labels = c("0.5x", "Same", "2x", "4x"))
+    scale_y_continuous(breaks = seq(-3, 3),
+                       labels = c("0.125x", "0.25x", "0.5x", 
+                                  "Same", "2x", "4x", "8x"))
 {% endhighlight %}
 
 ![center](/figs/2017-04-15-Gender-Pronouns/austen-1.png)
@@ -186,13 +184,11 @@ eliot_ratios <- eliot %>%
     count(word1, word2, wt = n, sort = TRUE) %>%
     rename(total = nn) %>%
     group_by(word2) %>%
-    mutate(word_total = sum(total)) %>%
+    filter(sum(total) > 10) %>%
     ungroup() %>%
-    filter(word_total > 10) %>%
-    select(-word_total) %>%
     spread(word1, total, fill = 0) %>%
     mutate_if(is.numeric, funs((. + 1) / sum(. + 1))) %>%
-    mutate(logratio = log(she / he)) %>%
+    mutate(logratio = log2(she / he)) %>%
     arrange(desc(logratio))
 {% endhighlight %}
 
@@ -217,9 +213,9 @@ eliot_ratios %>%
          title = "Words paired with 'he' and 'she' in George Eliot's novels",
          subtitle = "Women read, run, and need while men leave, mean, and tell") +
     scale_color_discrete(name = "", labels = c("More 'she'", "More 'he'")) +
-    scale_y_continuous(breaks = seq(-3, 3),
-                       labels = c("0.125x", "0.25x", "0.5x", 
-                                  "Same", "2x", "4x", "8x"))
+    scale_y_continuous(breaks = seq(-5, 5),
+                       labels = c("0.03125x", "0.0625x", "0.125x", "0.25x", "0.5x", 
+                                  "Same", "2x", "4x", "8x", "16x", "32x"))
 {% endhighlight %}
 
 ![center](/figs/2017-04-15-Gender-Pronouns/eliot-1.png)
@@ -244,13 +240,11 @@ eyre_ratios <- eyre %>%
     count(word1, word2, wt = n, sort = TRUE) %>%
     rename(total = nn) %>%
     group_by(word2) %>%
-    mutate(word_total = sum(total)) %>%
+    filter(sum(total) > 5) %>%
     ungroup() %>%
-    filter(word_total > 5) %>%
-    select(-word_total) %>%
     spread(word1, total, fill = 0) %>%
     mutate_if(is.numeric, funs((. + 1) / sum(. + 1))) %>%
-    mutate(logratio = log(she / he)) %>%
+    mutate(logratio = log2(she / he)) %>%
     arrange(desc(logratio))
 {% endhighlight %}
 

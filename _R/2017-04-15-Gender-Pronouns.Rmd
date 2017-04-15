@@ -47,8 +47,7 @@ That is all the bigrams from Jane Austen's works, but we only want the ones that
 pronouns <- c("he", "she")
 
 bigram_counts <- austen_bigrams %>%
-    count(book, bigram, sort = TRUE) %>%
-    ungroup() %>%
+    count(bigram, sort = TRUE) %>%
     separate(bigram, c("word1", "word2"), sep = " ") %>%
     filter(word1 %in% pronouns) %>%
     count(word1, word2, wt = n, sort = TRUE) %>%
@@ -62,13 +61,11 @@ There we go! These are the most common bigrams that start with "he" and "she" in
 ```{r word_ratios, dependson="bigram_counts"}
 word_ratios <- bigram_counts %>%
     group_by(word2) %>%
-    mutate(word_total = sum(total)) %>%
+    filter(sum(total) > 10) %>%
     ungroup() %>%
-    filter(word_total > 10) %>%
-    select(-word_total) %>%
     spread(word1, total, fill = 0) %>%
     mutate_if(is.numeric, funs((. + 1) / sum(. + 1))) %>%
-    mutate(logratio = log(she / he)) %>%
+    mutate(logratio = log2(she / he)) %>%
     arrange(desc(logratio))    
 ```
 
@@ -99,8 +96,9 @@ word_ratios %>%
          title = "Words paired with 'he' and 'she' in Jane Austen's novels",
          subtitle = "Women remember, read, and feel while men stop, take, and reply") +
     scale_color_discrete(name = "", labels = c("More 'she'", "More 'he'")) +
-    scale_y_continuous(breaks = seq(-1, 2),
-                       labels = c("0.5x", "Same", "2x", "4x"))
+    scale_y_continuous(breaks = seq(-3, 3),
+                       labels = c("0.125x", "0.25x", "0.5x", 
+                                  "Same", "2x", "4x", "8x"))
 ```
 
 These words are the ones that are the most different in how Jane Austen used them with the pronouns "he" and "she". Women in Austen's novels do things like remember, read, feel, resolve, long, hear, dare, and cry. Men, on the other hand, in these novels do things like stop, take, reply, come, marry, and know. Women in Austen's world can be funny and smart and unconventional, but she plays with these ideas within a cultural context where they act out gendered roles.
@@ -129,13 +127,11 @@ eliot_ratios <- eliot %>%
     count(word1, word2, wt = n, sort = TRUE) %>%
     rename(total = nn) %>%
     group_by(word2) %>%
-    mutate(word_total = sum(total)) %>%
+    filter(sum(total) > 10) %>%
     ungroup() %>%
-    filter(word_total > 10) %>%
-    select(-word_total) %>%
     spread(word1, total, fill = 0) %>%
     mutate_if(is.numeric, funs((. + 1) / sum(. + 1))) %>%
-    mutate(logratio = log(she / he)) %>%
+    mutate(logratio = log2(she / he)) %>%
     arrange(desc(logratio))
 ```
 
@@ -159,9 +155,9 @@ eliot_ratios %>%
          title = "Words paired with 'he' and 'she' in George Eliot's novels",
          subtitle = "Women read, run, and need while men leave, mean, and tell") +
     scale_color_discrete(name = "", labels = c("More 'she'", "More 'he'")) +
-    scale_y_continuous(breaks = seq(-3, 3),
-                       labels = c("0.125x", "0.25x", "0.5x", 
-                                  "Same", "2x", "4x", "8x"))
+    scale_y_continuous(breaks = seq(-5, 5),
+                       labels = c("0.03125x", "0.0625x", "0.125x", "0.25x", "0.5x", 
+                                  "Same", "2x", "4x", "8x", "16x", "32x"))
 ```
 
 We can see some difference in word use and style here, but overall there are quite similar ideas behind the verbs for women and men in Eliot's works as Austen's. Women read, run, need, marry, and look while men leave, mean, tell, know, and call. The verbs associated with women are more connected to emotion or feelings while the verbs associated with men are more connected to action or speaking.
@@ -183,13 +179,11 @@ eyre_ratios <- eyre %>%
     count(word1, word2, wt = n, sort = TRUE) %>%
     rename(total = nn) %>%
     group_by(word2) %>%
-    mutate(word_total = sum(total)) %>%
+    filter(sum(total) > 5) %>%
     ungroup() %>%
-    filter(word_total > 5) %>%
-    select(-word_total) %>%
     spread(word1, total, fill = 0) %>%
     mutate_if(is.numeric, funs((. + 1) / sum(. + 1))) %>%
-    mutate(logratio = log(she / he)) %>%
+    mutate(logratio = log2(she / he)) %>%
     arrange(desc(logratio))
 ```
 
